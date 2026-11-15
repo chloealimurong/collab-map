@@ -7,6 +7,7 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Afacad+Flux:wght@100..1000&display=swap" rel="stylesheet">
+<!--This is the font and color settings-->
 <style>
 *{box-sizing:border-box}
 html,body{margin:0;height:100%;background:#dfe8ed;color:#152f57;font-family:"Afacad Flux",system-ui,sans-serif}
@@ -22,6 +23,9 @@ html,body{margin:0;height:100%;background:#dfe8ed;color:#152f57;font-family:"Afa
 #sub{position:absolute;top:118px;left:24px;font-size:15px;color:#2a4876;pointer-events:none}
 #time{position:absolute;left:20px;right:20px;bottom:18px;height:46px}
 #legend{position:absolute;right:20px;top:20px;font-size:11px;color:#2a4876;text-align:right}
+#credits{position:absolute;right:22px;bottom:76px;max-width:340px;text-align:right;font-size:12px;line-height:1.45;color:#2a4876}
+#credits a{color:inherit}
+#credits b{color:#152f57;font-weight:600}
 #tip{position:fixed;pointer-events:none;background:#f5f8fa;border:1px solid #9aaabf;color:#152f57;border-radius:6px;padding:7px 10px;font-size:12.5px;box-shadow:0 4px 14px rgba(0,0,0,.08);display:none}
 #err{display:none;position:absolute;inset:0;align-items:center;justify-content:center;color:#2a4876;font-size:14px}
 </style>
@@ -33,6 +37,11 @@ html,body{margin:0;height:100%;background:#dfe8ed;color:#152f57;font-family:"Afa
   <div id="date"></div>
   <div id="sub"></div>
   <div id="legend"></div>
+  <div id="credits">
+    <b>Evelyn Zhong &amp; Chloe Alimurong</b><br>Master of Urban Spatial Analytics, University of Pennsylvania<br>
+    Data: <a href="https://catalog.data.gov/dataset/event-correlated-outage-dataset-in-america">Event-Correlated Outage Dataset</a> (She, Adetola &amp; Yun), from EAGLE-I (ORNL) and DOE-417 (EIA)<br>
+    County boundaries: <a href="https://services1.arcgis.com/RbMX0mRVOFNTdLzd/arcgis/rest/services/Maine_County_Boundary_Lines/FeatureServer">Maine County Boundary Lines</a>; U.S. Census via us-atlas
+  </div>
   <svg id="time"></svg>
   <div id="err">County boundaries could not load.</div>
 </div>
