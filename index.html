@@ -1,0 +1,129 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Maine Winter Storm Outages</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Afacad+Flux:wght@100..1000&display=swap" rel="stylesheet">
+<style>
+*{box-sizing:border-box}
+html,body{margin:0;height:100%;background:#dfe8ed;color:#152f57;font-family:"Afacad Flux",system-ui,sans-serif}
+#app{position:relative;height:100vh}
+#map{width:100%;height:100%;display:block}
+.county{stroke:#fff;stroke-width:.6}
+.county:hover{stroke:#152f57;stroke-width:1.5}
+.line{fill:none;stroke:#fff;stroke-width:.9;pointer-events:none}
+#years{position:absolute;top:20px;left:20px;display:flex;flex-wrap:wrap;gap:4px;max-width:calc(100% - 40px)}
+#years button{font-size:16px;font-family:inherit;border:0;background:transparent;color:#2a4876;border-radius:5px;padding:2px 10px;cursor:pointer}
+#years button.on{background:#cadbe5;color:#152f57}
+#date{position:absolute;top:62px;left:22px;font-size:44px;line-height:1.1;font-weight:600;pointer-events:none}
+#sub{position:absolute;top:118px;left:24px;font-size:15px;color:#2a4876;pointer-events:none}
+#time{position:absolute;left:20px;right:20px;bottom:18px;height:46px}
+#legend{position:absolute;right:20px;top:20px;font-size:11px;color:#2a4876;text-align:right}
+#tip{position:fixed;pointer-events:none;background:#f5f8fa;border:1px solid #9aaabf;color:#152f57;border-radius:6px;padding:7px 10px;font-size:12.5px;box-shadow:0 4px 14px rgba(0,0,0,.08);display:none}
+#err{display:none;position:absolute;inset:0;align-items:center;justify-content:center;color:#2a4876;font-size:14px}
+</style>
+</head>
+<body>
+<div id="app">
+  <svg id="map"></svg>
+  <div id="years"></div>
+  <div id="date"></div>
+  <div id="sub"></div>
+  <div id="legend"></div>
+  <svg id="time"></svg>
+  <div id="err">County boundaries could not load.</div>
+</div>
+<div id="tip"></div>
+<script src="https://cdn.jsdelivr.net/npm/d3@7.9.0/dist/d3.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/topojson-client@3.1.0/dist/topojson-client.min.js"></script>
+<script>
+const DATA =
+{"storms":[{"date":"2016-01-10","season":"2015\u201316","ch":816903,"c":{"23001":[10386,2912],"23003":[9033,2362],"23007":[1252,313],"23009":[463094,22804],"23011":[41899,8570],"23013":[43702,3763],"23015":[43402,6096],"23017":[1866,541],"23019":[71911,7088],"23021":[5363,1497],"23023":[30098,3650],"23027":[53438,3263],"23029":[41460,3217]}},{"date":"2016-02-25","season":"2015\u201316","ch":52488,"c":{"23001":[10332,1475],"23003":[8448,3461],"23005":[20689,3227],"23009":[370,396],"23011":[10703,2562],"23019":[64,256],"23031":[1882,1545]}},{"date":"2016-12-30","season":"2016\u201317","ch":1514596,"c":{"23001":[93390,6361],"23005":[385181,28105],"23007":[3002,336],"23009":[45285,6192],"23011":[318816,24072],"23013":[24455,4098],"23015":[57851,7594],"23017":[3634,638],"23019":[239153,21404],"23021":[79079,7884],"23023":[79947,6230],"23027":[87798,8330],"23029":[20004,2385],"23031":[77001,8018]}},{"date":"2017-03-02","season":"2016\u201317","ch":65976,"c":{"23001":[804,643],"23005":[6082,2035],"23007":[935,432],"23011":[2245,1062],"23013":[375,500],"23015":[972,836],"23017":[9293,1710],"23019":[3326,769],"23021":[6842,1619],"23023":[1196,435],"23031":[33906,6865]}},{"date":"2017-03-14","season":"2016\u201317","ch":924482,"c":{"23001":[6272,805],"23005":[4831,468],"23007":[4042,481],"23009":[71408,4248],"23011":[37680,4975],"23013":[4431,532],"23015":[1095,340],"23017":[22205,1692],"23019":[19381,2566],"23021":[13138,1090],"23027":[18142,1442],"23029":[60346,5045],"23031":[661510,25422]}},{"date":"2018-03-07","season":"2017\u201318","ch":633505,"c":{"23005":[26730,3341],"23009":[39276,2559],"23011":[1397,624],"23013":[8557,3196],"23015":[169156,6429],"23023":[35061,2577],"23025":[799,355],"23029":[4622,786],"23031":[347908,19958]}},{"date":"2019-02-25","season":"2018\u201319","ch":132136,"c":{"23001":[5295,1899],"23003":[2102,450],"23005":[22546,2425],"23007":[7182,1816],"23009":[11216,3368],"23011":[7757,1497],"23013":[3801,3294],"23015":[14364,2471],"23017":[21897,2893],"23019":[6215,1204],"23021":[3970,2905],"23023":[120,244],"23025":[911,571],"23027":[4102,1759],"23031":[20659,3059]}},{"date":"2020-02-07","season":"2019\u201320","ch":245424,"c":{"23001":[389,223],"23003":[719,262],"23005":[91460,13350],"23009":[12355,3304],"23013":[15778,2084],"23015":[43030,2945],"23017":[4052,1986],"23019":[1829,283],"23021":[1494,854],"23023":[54262,5250],"23027":[6377,753],"23029":[5229,1559],"23031":[8450,2525]}},{"date":"2020-03-24","season":"2019\u201320","ch":126062,"c":{"23005":[20407,7713],"23009":[1796,422],"23011":[2232,1111],"23013":[160,229],"23015":[50004,5364],"23017":[1632,520],"23023":[28059,2887],"23027":[2183,490],"23029":[228,457],"23031":[19360,5278]}},{"date":"2020-12-05","season":"2020\u201321","ch":654165,"c":{"23003":[57372,5488],"23005":[436,586],"23009":[56810,3214],"23013":[97900,4771],"23015":[162946,7541],"23023":[138727,6420],"23025":[205,205],"23027":[138507,6447],"23029":[1102,339],"23031":[159,637]}},{"date":"2020-12-25","season":"2020\u201321","ch":111483,"c":{"23001":[3283,984],"23003":[812,406],"23005":[10103,4291],"23007":[718,454],"23009":[10655,3463],"23011":[20571,5364],"23013":[2019,503],"23015":[11490,1100],"23017":[1632,1024],"23019":[24042,5499],"23021":[5590,1405],"23023":[2981,718],"23025":[2010,1376],"23027":[6738,1054],"23031":[8838,1528]}},{"date":"2021-03-01","season":"2020\u201321","ch":830698,"c":{"23001":[20058,2001],"23003":[2072,1013],"23005":[30064,3486],"23007":[73300,4495],"23009":[38747,3160],"23011":[29057,5454],"23013":[23761,4580],"23015":[64118,2510],"23017":[211017,11773],"23019":[18303,3049],"23021":[66544,5040],"23023":[16684,3025],"23025":[50248,4420],"23027":[19842,2847],"23029":[3475,1092],"23031":[163410,13496]}},{"date":"2021-03-29","season":"2020\u201321","ch":409146,"c":{"23001":[4865,1151],"23003":[8116,2586],"23005":[20505,5253],"23007":[48633,6907],"23009":[5165,1396],"23011":[16713,2514],"23013":[11341,3252],"23015":[19025,4150],"23017":[64640,7009],"23019":[30163,4710],"23021":[39262,4968],"23023":[7254,1297],"23025":[40494,4398],"23027":[9426,3180],"23029":[1222,783],"23031":[82323,10703]}},{"date":"2022-01-29","season":"2021\u201322","ch":47340,"c":{"23005":[3351,3566],"23007":[578,337],"23009":[16936,1091],"23011":[2582,2360],"23015":[6750,738],"23017":[3891,1152],"23019":[444,332],"23023":[594,1188],"23025":[6804,1036],"23027":[1716,539],"23029":[3695,2990]}},{"date":"2022-02-18","season":"2021\u201322","ch":78862,"c":{"23001":[355,238],"23003":[341,1364],"23005":[2792,3986],"23007":[1532,653],"23009":[24118,3503],"23013":[2965,1569],"23015":[1292,345],"23017":[6784,1712],"23019":[26541,8730],"23021":[887,534],"23023":[3874,1559],"23025":[1844,833],"23027":[736,286],"23029":[1237,285],"23031":[3563,590]}},{"date":"2022-12-16","season":"2022\u201323","ch":2796103,"c":{"23001":[351320,14617],"23003":[552,747],"23005":[444114,10844],"23007":[116938,4857],"23011":[219139,7705],"23015":[1661,600],"23017":[1105280,25494],"23019":[184870,11142],"23021":[22070,1151],"23023":[6438,1683],"23025":[94340,3770],"23027":[10569,746],"23029":[1486,849],"23031":[237325,12136]}},{"date":"2022-12-23","season":"2022\u201323","ch":832425,"c":{"23005":[2070,4489],"23007":[111449,4798],"23011":[284727,15504],"23013":[282256,10269],"23017":[1373,1339],"23019":[1406,912],"23021":[298,239],"23025":[145670,9608],"23029":[597,329],"23031":[2578,5151]}},{"date":"2023-01-23","season":"2022\u201323","ch":1196787,"c":{"23001":[24036,4563],"23005":[37396,4434],"23009":[473,251],"23011":[4815,2627],"23013":[470,940],"23015":[4428,900],"23017":[1023,585],"23019":[5690,1928],"23021":[1132,1351],"23029":[1008,293],"23031":[1116315,39304]}},{"date":"2023-03-14","season":"2022\u201323","ch":1392274,"c":{"23001":[56610,6661],"23003":[3074,415],"23005":[223931,24467],"23007":[7922,2721],"23009":[27179,1841],"23011":[49776,4433],"23013":[290622,16556],"23015":[253950,11081],"23017":[10605,723],"23019":[7438,1736],"23021":[870,220],"23023":[119549,4918],"23025":[2084,513],"23027":[36950,2644],"23029":[21024,3727],"23031":[280690,17472]}}],"names":{"23001":"Androscoggin","23003":"Aroostook","23005":"Cumberland","23007":"Franklin","23009":"Hancock","23011":"Kennebec","23013":"Knox","23015":"Lincoln","23017":"Oxford","23019":"Penobscot","23021":"Piscataquis","23023":"Sagadahoc","23025":"Somerset","23027":"Waldo","23029":"Washington","23031":"York"}};
+// Maine county lines (user's layer) + county polygons (us-atlas) for the fill
+const SVC = "https://services1.arcgis.com/RbMX0mRVOFNTdLzd/arcgis/rest/services/Maine_County_Boundary_Lines/FeatureServer/0/query?where=1%3D1&outFields=*&outSR=4326&f=geojson";
+const ATLAS = "https://cdn.jsdelivr.net/npm/us-atlas@3/counties-10m.json";
+const RAMP = ["#cadbe5","#9aaabf","#2a4876","#152f57"], NONE = "#f2f6f8";
+const fmt = d3.format(","), short = d3.format(".2~s");
+const seasons = [...new Set(DATA.storms.map(s=>s.season))];
+const vals = DATA.storms.flatMap(s=>Object.values(s.c).map(v=>v[0])).filter(v=>v>0);
+const sc = d3.scaleSequentialLog([Math.max(1,d3.min(vals)), d3.max(vals)], d3.interpolateRgbBasis(RAMP)).clamp(true);
+const byName = {}; for (const [f,n] of Object.entries(DATA.names)) byName[norm(n)] = f;
+function norm(s){return String(s).toUpperCase().replace(/\s+COUNTY$/,"").trim();}
+function fipsOf(props){for (const v of Object.values(props||{})) {const f=byName[norm(v)]; if(f) return f;} return null;}
+
+let season = seasons[seasons.length-1], idx = 0, timer = null, countyPaths;
+const svg = d3.select("#map"), g = svg.append("g"), tip = d3.select("#tip");
+
+const yb = d3.select("#years").selectAll("button").data(seasons).join("button")
+  .text(d=>d).on("click",(e,d)=>{season=d; idx=0; play();});
+
+Promise.all([
+  d3.json(SVC).catch(()=>null),
+  d3.json(ATLAS).catch(()=>null)
+]).then(([gj, us])=>{
+  let polys = null, lines = null;
+  const feats = gj && gj.features ? gj.features : [];
+  const isPoly = feats.length && /Polygon/.test(feats[0].geometry && feats[0].geometry.type);
+  if (isPoly) {
+    polys = feats.map(f=>({...f, id: fipsOf(f.properties)})).filter(f=>f.id);
+    if (polys.length < 10) polys = null;
+  } else if (feats.length) lines = feats;
+  if (!polys && us) polys = topojson.feature(us, us.objects.counties).features.filter(f=>f.id.startsWith("23"));
+  if (!polys) { d3.select("#err").style("display","flex"); return; }
+  const proj = d3.geoTransverseMercator().rotate([69.2,0]);
+  const extent = {type:"FeatureCollection",features:polys};
+  countyPaths = g.selectAll(".county").data(polys).join("path").attr("class","county").attr("fill",NONE)
+    .on("mousemove",(e,f)=>{const s=cur(), v=s&&s.c[f.id];
+      tip.style("display","block").style("left",e.clientX+14+"px").style("top",e.clientY+14+"px")
+         .html(`<b>${DATA.names[f.id]||""} County</b><br>${v?fmt(v[0])+" customer-hours out":"No matched outage"}`);})
+    .on("mouseleave",()=>tip.style("display","none"));
+  if (lines) g.selectAll(".line").data(lines).join("path").attr("class","line");
+  function size(){const r=svg.node().getBoundingClientRect();
+    proj.fitExtent([[r.width*.18,150],[r.width-30,r.height-80]],extent);
+    g.selectAll("path").attr("d",d3.geoPath(proj)); timeline();}
+  size(); window.addEventListener("resize",size);
+  legend(); play();
+});
+
+function list(){return DATA.storms.filter(s=>s.season===season);}
+function cur(){return list()[idx];}
+function play(){
+  clearInterval(timer); show();
+  if (list().length>1) timer = setInterval(()=>{idx=(idx+1)%list().length; show();}, 2400);
+}
+function show(){
+  const s = cur(); if(!s||!countyPaths) return;
+  yb.classed("on",d=>d===season);
+  const dt = new Date(s.date+"T12:00");
+  d3.select("#date").text(dt.toLocaleDateString("en-US",{month:"long",day:"numeric",year:"numeric"}));
+  d3.select("#sub").text(`Storm ${idx+1} of ${list().length} · ${fmt(s.ch)} customer-hours out statewide`);
+  countyPaths.transition().duration(600).attr("fill",f=>{const v=s.c[f.id]; return v&&v[0]>0?sc(v[0]):NONE;});
+  timeline();
+}
+function timeline(){
+  const el=d3.select("#time"), w=el.node().getBoundingClientRect().width, y0=+season.slice(0,4);
+  const x=d3.scaleTime([new Date(y0,11,1),new Date(y0+1,3,1)],[8,w-8]);
+  el.selectAll("*").remove();
+  el.append("line").attr("x1",8).attr("x2",w-8).attr("y1",14).attr("y2",14).attr("stroke","#9aaabf").attr("stroke-width",2);
+  el.selectAll(".m").data(x.ticks(d3.timeMonth)).join("text").attr("x",d=>x(d)).attr("y",40)
+    .attr("font-size",11).attr("fill","#2a4876").text(d3.timeFormat("%b"));
+  el.selectAll(".dot").data(list()).join("circle").attr("cx",d=>x(new Date(d.date+"T12:00"))).attr("cy",14)
+    .attr("r",(d,i)=>i===idx?8:5).attr("fill",(d,i)=>i===idx?"#152f57":"#dfe8ed").attr("stroke","#152f57").attr("stroke-width",1.5)
+    .style("cursor","pointer").on("click",(e,d)=>{idx=list().indexOf(d); play();});
+}
+function legend(){
+  const [lo,hi]=sc.domain(), w=160, el=d3.select("#legend");
+  el.append("div").style("margin-bottom","4px").text("Customer-hours out");
+  const s=el.append("svg").attr("width",w+16).attr("height",30), gr=s.append("defs").append("linearGradient").attr("id","lg");
+  d3.range(0,1.01,.1).forEach(t=>gr.append("stop").attr("offset",t).attr("stop-color",sc(lo*Math.pow(hi/lo,t))));
+  s.append("rect").attr("x",8).attr("width",w).attr("height",9).attr("rx",2).attr("fill","url(#lg)");
+  const ax=d3.scaleLog([lo,hi],[8,w+8]);
+  s.selectAll("text").data(ax.ticks(3).filter(t=>/^1/.test(String(t)))).join("text").attr("x",d=>ax(d)).attr("y",24)
+    .attr("text-anchor","middle").attr("font-size",10).attr("fill","#2a4876").text(d=>short(d));
+}
+</script>
+</body>
+</html>
