@@ -7,15 +7,13 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Afacad+Flux:wght@100..1000&display=swap" rel="stylesheet">
-<!--This is the font and color settings-->
 <style>
 *{box-sizing:border-box}
-html,body{margin:0;height:100%;background:#dfe8ed;color:#152f57;font-family:"Afacad Flux",system-ui,sans-serif}
+html,body{margin:0;height:100%;background:#ffffff;color:#152f57;font-family:"Afacad Flux",system-ui,sans-serif}
 #app{position:relative;height:100vh}
-#map{width:100%;height:100%;display:block}
-.county{stroke:#fff;stroke-width:.6}
-.county:hover{stroke:#152f57;stroke-width:1.5}
-.line{fill:none;stroke:#fff;stroke-width:.9;pointer-events:none}
+#map{width:100%;height:100%;display:block;cursor:grab}
+.dot{vector-effect:non-scaling-stroke}
+.blob{fill:none;vector-effect:non-scaling-stroke;pointer-events:none}
 #years{position:absolute;top:20px;left:20px;display:flex;flex-wrap:wrap;gap:4px;max-width:calc(100% - 40px)}
 #years button{font-size:16px;font-family:inherit;border:0;background:transparent;color:#2a4876;border-radius:5px;padding:2px 10px;cursor:pointer}
 #years button.on{background:#cadbe5;color:#152f57}
@@ -26,6 +24,7 @@ html,body{margin:0;height:100%;background:#dfe8ed;color:#152f57;font-family:"Afa
 #credits{position:absolute;right:22px;bottom:76px;max-width:340px;text-align:right;font-size:12px;line-height:1.45;color:#2a4876}
 #credits a{color:inherit}
 #credits b{color:#152f57;font-weight:600}
+#svikey{margin-top:10px;display:flex;align-items:center;justify-content:flex-end;gap:6px}
 #tip{position:fixed;pointer-events:none;background:#f5f8fa;border:1px solid #9aaabf;color:#152f57;border-radius:6px;padding:7px 10px;font-size:12.5px;box-shadow:0 4px 14px rgba(0,0,0,.08);display:none}
 #err{display:none;position:absolute;inset:0;align-items:center;justify-content:center;color:#2a4876;font-size:14px}
 </style>
@@ -40,6 +39,7 @@ html,body{margin:0;height:100%;background:#dfe8ed;color:#152f57;font-family:"Afa
   <div id="credits">
     <b>Evelyn Zhong &amp; Chloe Alimurong</b><br>Master of Urban Spatial Analytics, University of Pennsylvania<br>
     Data: <a href="https://catalog.data.gov/dataset/event-correlated-outage-dataset-in-america">Event-Correlated Outage Dataset</a> (She, Adetola &amp; Yun), from EAGLE-I (ORNL) and DOE-417 (EIA)<br>
+    Social vulnerability: <a href="https://services.arcgis.com/F7DSX1DSNSiWmOqh/arcgis/rest/services/SVI2020_Web_Map_for_Data_Share_WFL1/FeatureServer/0">Maine SVI 2020</a><br>
     County boundaries: <a href="https://services1.arcgis.com/RbMX0mRVOFNTdLzd/arcgis/rest/services/Maine_County_Boundary_Lines/FeatureServer">Maine County Boundary Lines</a>; U.S. Census via us-atlas
   </div>
   <svg id="time"></svg>
@@ -54,17 +54,20 @@ const DATA =
 // Maine county lines (user's layer) + county polygons (us-atlas) for the fill
 const SVC = "https://services1.arcgis.com/RbMX0mRVOFNTdLzd/arcgis/rest/services/Maine_County_Boundary_Lines/FeatureServer/0/query?where=1%3D1&outFields=*&outSR=4326&f=geojson";
 const ATLAS = "https://cdn.jsdelivr.net/npm/us-atlas@3/counties-10m.json";
-const RAMP = ["#cadbe5","#9aaabf","#2a4876","#152f57"], NONE = "#f2f6f8";
 const fmt = d3.format(","), short = d3.format(".2~s");
 const seasons = [...new Set(DATA.storms.map(s=>s.season))];
 const vals = DATA.storms.flatMap(s=>Object.values(s.c).map(v=>v[0])).filter(v=>v>0);
-const sc = d3.scaleSequentialLog([Math.max(1,d3.min(vals)), d3.max(vals)], d3.interpolateRgbBasis(RAMP)).clamp(true);
+const DOM = [Math.max(1,d3.min(vals)), d3.max(vals)];
+// Outage dots: blue → yellow → red as customer-hours rise
+const sc = d3.scaleSequentialLog(DOM, d3.interpolateRgbBasis(["#2a4876","#5b8fc7","#f2c84b","#ef8a3c","#c8102e"])).clamp(true);
 const byName = {}; for (const [f,n] of Object.entries(DATA.names)) byName[norm(n)] = f;
 function norm(s){return String(s).toUpperCase().replace(/\s+COUNTY$/,"").trim();}
 function fipsOf(props){for (const v of Object.values(props||{})) {const f=byName[norm(v)]; if(f) return f;} return null;}
 
-let season = seasons[seasons.length-1], idx = 0, timer = null, countyPaths;
+let proj, polys, grid, dotSel, towns = null;
+let season = seasons[seasons.length-1], idx = 0, timer = null;
 const svg = d3.select("#map"), g = svg.append("g"), tip = d3.select("#tip");
+const gDots = g.append("g"), gBlobs = g.append("g");
 
 const yb = d3.select("#years").selectAll("button").data(seasons).join("button")
   .text(d=>d).on("click",(e,d)=>{season=d; idx=0; play();});
@@ -73,29 +76,90 @@ Promise.all([
   d3.json(SVC).catch(()=>null),
   d3.json(ATLAS).catch(()=>null)
 ]).then(([gj, us])=>{
-  let polys = null, lines = null;
   const feats = gj && gj.features ? gj.features : [];
-  const isPoly = feats.length && /Polygon/.test(feats[0].geometry && feats[0].geometry.type);
-  if (isPoly) {
+  if (feats.length && /Polygon/.test(feats[0].geometry && feats[0].geometry.type)) {
     polys = feats.map(f=>({...f, id: fipsOf(f.properties)})).filter(f=>f.id);
     if (polys.length < 10) polys = null;
-  } else if (feats.length) lines = feats;
+  }
   if (!polys && us) polys = topojson.feature(us, us.objects.counties).features.filter(f=>f.id.startsWith("23"));
   if (!polys) { d3.select("#err").style("display","flex"); return; }
-  const proj = d3.geoTransverseMercator().rotate([69.2,0]);
-  const extent = {type:"FeatureCollection",features:polys};
-  countyPaths = g.selectAll(".county").data(polys).join("path").attr("class","county").attr("fill",NONE)
-    .on("mousemove",(e,f)=>{const s=cur(), v=s&&s.c[f.id];
-      tip.style("display","block").style("left",e.clientX+14+"px").style("top",e.clientY+14+"px")
-         .html(`<b>${DATA.names[f.id]||""} County</b><br>${v?fmt(v[0])+" customer-hours out":"No matched outage"}`);})
-    .on("mouseleave",()=>tip.style("display","none"));
-  if (lines) g.selectAll(".line").data(lines).join("path").attr("class","line");
+  polys.forEach(p=>p.bb = d3.geoBounds(p));
+  proj = d3.geoTransverseMercator().rotate([69.2,0]);
   function size(){const r=svg.node().getBoundingClientRect();
-    proj.fitExtent([[r.width*.18,150],[r.width-30,r.height-80]],extent);
-    g.selectAll("path").attr("d",d3.geoPath(proj)); timeline();}
+    proj.fitExtent([[r.width*.18,150],[r.width-30,r.height-80]],{type:"FeatureCollection",features:polys});
+    buildGrid(); show(true); drawBlobs(); timeline();}
   size(); window.addEventListener("resize",size);
   legend(); play();
+  loadTowns().then(drawBlobs);
 });
+
+function inBB(ll,b){return ll[0]>=b[0][0] && ll[0]<=b[1][0] && ll[1]>=b[0][1] && ll[1]<=b[1][1];}
+// A regular grid of circles over Maine; each circle takes the outage value of the county it sits in
+function buildGrid(){
+  const b = d3.geoPath(proj).bounds({type:"FeatureCollection",features:polys});
+  const s = Math.max(6, Math.min(13, (b[1][1]-b[0][1])/75));
+  const nx = Math.ceil((b[1][0]-b[0][0])/s)+3, ny = Math.ceil((b[1][1]-b[0][1])/s)+3, x0 = b[0][0]-s, y0 = b[0][1]-s;
+  const pts = [];
+  for (let j=0;j<ny;j++) for (let i=0;i<nx;i++) {
+    const x = x0+i*s, y = y0+j*s, ll = proj.invert([x,y]);
+    const c = polys.find(p=>inBB(ll,p.bb) && d3.geoContains(p,ll));
+    pts.push({x, y, ll, fips: c ? c.id : null});
+  }
+  grid = {x0, y0, s, nx, ny, pts};
+  dotSel = gDots.selectAll(".dot").data(pts.filter(p=>p.fips)).join("circle").attr("class","dot")
+    .attr("cx",d=>d.x).attr("cy",d=>d.y)
+    .on("mousemove",(e,d)=>{const st=cur(), v=st&&st.c[d.fips];
+      tip.style("display","block").style("left",e.clientX+14+"px").style("top",e.clientY+14+"px")
+         .html(`<b>${DATA.names[d.fips]||""} County</b><br>${v?fmt(v[0])+" customer-hours out":"No matched outage"}${d.svi!=null?`<br>Town SVI: ${d3.format(".2f")(d.svi)}`:""}`);})
+    .on("mouseleave",()=>tip.style("display","none"));
+}
+function dotR(v){ const s = grid.s; return v>0 ? s*(.2 + .28*(Math.log(v/DOM[0])/Math.log(DOM[1]/DOM[0]))) : s*.13; }
+
+// SVI as rounded, contoured shapes: town SVI sampled on the grid, softened, then contoured every 0.05 above 0.5
+async function loadTowns(){
+  try {
+    towns = (await fetchAll(SVI, "where=1%3D1&outFields=NAME,MESVI2020,RPL_THEMES&outSR=4326&f=geojson"))
+      .map(f=>({f, b: d3.geoBounds(f), v: sviValue(f.properties||{})}));
+  } catch(e) { console.log("SVI could not load", e); }
+}
+function townAt(ll){ return towns && towns.find(t => inBB(ll,t.b) && d3.geoContains(t.f, ll)); }
+const RINGS = d3.range(0.5, 0.951, 0.05);
+const ringColor = d3.scaleLinear([0, RINGS.length-1], ["#152f57","#9aaabf"]);
+function drawBlobs(){
+  gBlobs.selectAll("*").remove();
+  if (!towns || !grid) return;
+  const {nx, ny, s, x0, y0, pts} = grid;
+  const data = pts.map(p=>{ if (!p.fips) return 0; if (p.svi === undefined) { const t = townAt(p.ll); p.svi = t ? t.v : null; } return p.svi ?? 0; });
+  if (d3.blur2) d3.blur2({data, width:nx, height:ny}, 1.2);
+  const cs = d3.contours().size([nx,ny]).thresholds(RINGS)(data);
+  const path = d3.geoPath(d3.geoTransform({point(x,y){ this.stream.point(x0+(x-.5)*s, y0+(y-.5)*s); }}));
+  gBlobs.selectAll(".blob").data(cs).join("path").attr("class","blob").attr("d",path)
+    .attr("stroke",(d,i)=>ringColor(i)).attr("stroke-width",(d,i)=>i===0?2.2:.8)
+    .attr("fill",(d,i)=>i===0?"rgba(21,47,87,.05)":"none");
+}
+
+// ---- Data helpers ----
+const SVI = "https://services.arcgis.com/F7DSX1DSNSiWmOqh/arcgis/rest/services/SVI2020_Web_Map_for_Data_Share_WFL1/FeatureServer/0";
+async function fetchAll(base, params){
+  let off = 0, out = [];
+  for (;;) {
+    const j = await d3.json(`${base}/query?${params}&resultOffset=${off}&resultRecordCount=2000`);
+    const fs = (j && j.features) || [];
+    out.push(...fs);
+    const more = j && (j.exceededTransferLimit || (j.properties && j.properties.exceededTransferLimit));
+    if (!more || !fs.length) break;
+    off += fs.length;
+  }
+  return out;
+}
+function sviValue(p){
+  let v = p.MESVI2020 ?? p.RPL_THEMES;
+  if (v == null || isNaN(v) || v < 0) return null;
+  return v > 1 ? v / 100 : +v;
+}
+// Zoom & pan
+const zoom = d3.zoom().scaleExtent([1, 40]).on("zoom", e=>g.attr("transform", e.transform));
+svg.call(zoom).on("dblclick.zoom", null);
 
 function list(){return DATA.storms.filter(s=>s.season===season);}
 function cur(){return list()[idx];}
@@ -103,13 +167,17 @@ function play(){
   clearInterval(timer); show();
   if (list().length>1) timer = setInterval(()=>{idx=(idx+1)%list().length; show();}, 2400);
 }
-function show(){
-  const s = cur(); if(!s||!countyPaths) return;
+function show(instant){
+  const s = cur(); if(!s||!dotSel) return;
   yb.classed("on",d=>d===season);
   const dt = new Date(s.date+"T12:00");
   d3.select("#date").text(dt.toLocaleDateString("en-US",{month:"long",day:"numeric",year:"numeric"}));
   d3.select("#sub").text(`Storm ${idx+1} of ${list().length} · ${fmt(s.ch)} customer-hours out statewide`);
-  countyPaths.transition().duration(600).attr("fill",f=>{const v=s.c[f.id]; return v&&v[0]>0?sc(v[0]):NONE;});
+  const val = d => { const v = s.c[d.fips]; return v ? v[0] : 0; };
+  (instant ? dotSel : dotSel.transition().duration(600))
+    .attr("r", d=>dotR(val(d)))
+    .attr("fill", d=>val(d)>0 ? sc(val(d)) : "none")
+    .attr("stroke", d=>val(d)>0 ? "none" : "#9aaabf").attr("stroke-width", .8);
   timeline();
 }
 function timeline(){
@@ -124,14 +192,21 @@ function timeline(){
     .style("cursor","pointer").on("click",(e,d)=>{idx=list().indexOf(d); play();});
 }
 function legend(){
-  const [lo,hi]=sc.domain(), w=160, el=d3.select("#legend");
+  const el=d3.select("#legend");
   el.append("div").style("margin-bottom","4px").text("Customer-hours out");
-  const s=el.append("svg").attr("width",w+16).attr("height",30), gr=s.append("defs").append("linearGradient").attr("id","lg");
-  d3.range(0,1.01,.1).forEach(t=>gr.append("stop").attr("offset",t).attr("stop-color",sc(lo*Math.pow(hi/lo,t))));
-  s.append("rect").attr("x",8).attr("width",w).attr("height",9).attr("rx",2).attr("fill","url(#lg)");
-  const ax=d3.scaleLog([lo,hi],[8,w+8]);
-  s.selectAll("text").data(ax.ticks(3).filter(t=>/^1/.test(String(t)))).join("text").attr("x",d=>ax(d)).attr("y",24)
-    .attr("text-anchor","middle").attr("font-size",10).attr("fill","#2a4876").text(d=>short(d));
+  const samples=[DOM[0]*3, Math.sqrt(DOM[0]*DOM[1]), DOM[1]/8, DOM[1]], s0=11;
+  const ls=el.append("svg").attr("width",200).attr("height",34);
+  const x=d=>16+d*40;
+  ls.append("circle").attr("cx",x(0)).attr("cy",12).attr("r",s0*.13*1.6).attr("fill","none").attr("stroke","#9aaabf");
+  ls.append("text").attr("x",x(0)).attr("y",31).attr("text-anchor","middle").attr("font-size",10).attr("fill","#2a4876").text("none");
+  samples.forEach((v,i)=>{ const t=Math.log(v/DOM[0])/Math.log(DOM[1]/DOM[0]);
+    ls.append("circle").attr("cx",x(i+1)).attr("cy",12).attr("r",s0*(.2+.28*t)*1.6).attr("fill",sc(v));
+    ls.append("text").attr("x",x(i+1)).attr("y",31).attr("text-anchor","middle").attr("font-size",10).attr("fill","#2a4876").text(short(v)); });
+  const b=el.append("div").attr("id","svikey");
+  b.append("span").text("Socially vulnerable areas (SVI ≥ 0.5, a ring every 0.05)");
+  const bs=b.append("svg").attr("width",34).attr("height",26);
+  [12,9,6,3].forEach((r,i)=>bs.append("ellipse").attr("cx",17).attr("cy",13).attr("rx",r*1.3).attr("ry",r)
+    .attr("fill",i?"none":"rgba(21,47,87,.05)").attr("stroke",ringColor(i*2)).attr("stroke-width",i?.8:2));
 }
 </script>
 </body>
