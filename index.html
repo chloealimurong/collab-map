@@ -14,17 +14,47 @@ html,body{margin:0;height:100%;background:#ffffff;color:#152f57;font-family:"Afa
 #map{width:100%;height:100%;display:block;cursor:grab}
 .dot{vector-effect:non-scaling-stroke}
 .blob{fill:none;vector-effect:non-scaling-stroke;pointer-events:none}
-#years{position:absolute;top:20px;left:20px;display:flex;flex-wrap:wrap;gap:4px;max-width:calc(100% - 40px)}
+#years{position:absolute;top:16px;left:16px;display:flex;flex-wrap:wrap;gap:4px;max-width:calc(100% - 290px);background:rgba(255,255,255,.88);border-radius:6px;padding:4px}
 #years button{font-size:16px;font-family:inherit;border:0;background:transparent;color:#2a4876;border-radius:5px;padding:2px 10px;cursor:pointer}
 #years button.on{background:#cadbe5;color:#152f57}
-#date{position:absolute;top:62px;left:22px;font-size:44px;line-height:1.1;font-weight:600;pointer-events:none}
-#sub{position:absolute;top:118px;left:24px;font-size:15px;color:#2a4876;pointer-events:none}
-#time{position:absolute;left:20px;right:20px;bottom:18px;height:46px}
+#head{position:absolute;top:58px;left:16px;max-width:calc(100% - 300px);background:rgba(255,255,255,.88);border-radius:6px;padding:4px 10px 6px;pointer-events:none}
+#date{font-size:44px;line-height:1.1;font-weight:600}
+#sub{margin-top:4px;font-size:15px;line-height:1.4;color:#2a4876}
+#sub b{color:#152f57;font-weight:600}
+#pause{position:absolute;left:20px;bottom:30px;font-size:14px;font-family:inherit;border:1px solid #9aaabf;background:#fff;color:#152f57;border-radius:5px;padding:3px 10px;cursor:pointer;min-width:84px}
+.nb-land{fill:#eef1f4;stroke:#c9d3dc;stroke-width:.8;vector-effect:non-scaling-stroke}
+.me-land{fill:#fff;stroke:#b8c4d0;stroke-width:.8;vector-effect:non-scaling-stroke}
+.nb-label{font-size:11px;letter-spacing:.12em;fill:#8a9bb0;text-anchor:middle;pointer-events:none}
+.sea-label{font-size:13px;font-style:italic;fill:#9aaabf;text-anchor:middle;pointer-events:none}
+#time{position:absolute;left:118px;right:20px;bottom:14px;height:50px;width:calc(100% - 138px);background:rgba(255,255,255,.88);border-radius:6px}
 #legend{position:absolute;right:20px;top:20px;font-size:11px;color:#2a4876;text-align:right}
-#credits{position:absolute;right:22px;bottom:76px;max-width:340px;text-align:right;font-size:12px;line-height:1.45;color:#2a4876}
+#legend{background:rgba(255,255,255,.88);padding:6px 8px;border-radius:6px}
+#credits{position:absolute;right:22px;bottom:76px;max-width:340px;text-align:right;font-size:12px;line-height:1.45;color:#2a4876;background:rgba(255,255,255,.88);padding:6px 8px;border-radius:6px}
 #credits a{color:inherit}
 #credits b{color:#152f57;font-weight:600}
-#svikey{margin-top:10px;display:flex;align-items:center;justify-content:flex-end;gap:6px}
+#svidef{margin-top:10px;max-width:270px;margin-left:auto}
+#svidef summary{list-style:none;cursor:pointer;display:flex;align-items:center;justify-content:flex-end;gap:6px}
+#svidef summary::-webkit-details-marker{display:none}
+#svidef summary .caret{font-size:9px;transition:transform .2s}
+#svidef[open] summary .caret{transform:rotate(180deg)}
+#svidef p{text-align:left;font-size:11.5px;line-height:1.45;margin:6px 0 0;color:#2a4876}
+#about{position:absolute;left:20px;bottom:62px;font-size:13px;font-family:inherit;border:0;background:transparent;color:#2a4876;text-decoration:underline;cursor:pointer;padding:2px 6px;background:rgba(255,255,255,.88);border-radius:4px}
+/* loading screen */
+#loader{position:fixed;inset:0;background:#152f57;z-index:20;transition:opacity .9s ease;display:flex;align-items:center;justify-content:center}
+#loader canvas{position:absolute;inset:0;width:100%;height:100%}
+#loader .ttl{position:relative;color:#fff;text-align:center;font-size:34px;font-weight:600;letter-spacing:.01em}
+#loader .ttl span{display:block;font-size:14px;font-weight:400;color:#cadbe5;margin-top:6px}
+#loader.done{opacity:0;pointer-events:none}
+/* intro popup */
+#intro{position:fixed;inset:0;z-index:15;display:none;align-items:center;justify-content:center;background:rgba(21,47,87,.28);padding:20px}
+#intro.show{display:flex}
+#intro .card{position:relative;background:#fff;color:#152f57;border-radius:10px;max-width:560px;max-height:calc(100vh - 40px);overflow:auto;padding:24px 28px 20px;box-shadow:0 12px 40px rgba(0,0,0,.18);font-size:14.5px;line-height:1.5}
+#intro h2{margin:0 0 10px;font-size:24px;line-height:1.2}
+#intro h3{margin:14px 0 4px;font-size:15px}
+#intro p{margin:0 0 6px;color:#2a4876}
+#intro .x{position:absolute;top:10px;right:12px;border:0;background:transparent;font-size:26px;line-height:1;color:#2a4876;cursor:pointer;padding:4px 8px}
+#intro .note{margin-top:12px;padding:8px 10px;background:#eef3f7;border-radius:6px;font-size:13px}
+#intro .go{margin-top:14px;font-family:inherit;font-size:14px;border:0;background:#152f57;color:#fff;border-radius:6px;padding:7px 14px;cursor:pointer}
 #tip{position:fixed;pointer-events:none;background:#f5f8fa;border:1px solid #9aaabf;color:#152f57;border-radius:6px;padding:7px 10px;font-size:12.5px;box-shadow:0 4px 14px rgba(0,0,0,.08);display:none}
 #err{display:none;position:absolute;inset:0;align-items:center;justify-content:center;color:#2a4876;font-size:14px}
 </style>
@@ -33,68 +63,172 @@ html,body{margin:0;height:100%;background:#ffffff;color:#152f57;font-family:"Afa
 <div id="app">
   <svg id="map"></svg>
   <div id="years"></div>
-  <div id="date"></div>
-  <div id="sub"></div>
+  <div id="head"><div id="date"></div><div id="sub"></div></div>
   <div id="legend"></div>
   <div id="credits">
     <b>Evelyn Zhong &amp; Chloe Alimurong</b><br>Master of Urban Spatial Analytics, University of Pennsylvania<br>
     Data: <a href="https://catalog.data.gov/dataset/event-correlated-outage-dataset-in-america">Event-Correlated Outage Dataset</a> (She, Adetola &amp; Yun), from EAGLE-I (ORNL) and DOE-417 (EIA)<br>
-    Social vulnerability: <a href="https://services.arcgis.com/F7DSX1DSNSiWmOqh/arcgis/rest/services/SVI2020_Web_Map_for_Data_Share_WFL1/FeatureServer/0">Maine SVI 2020</a><br>
+    Social vulnerability: <a href="https://services.arcgis.com/F7DSX1DSNSiWmOqh/arcgis/rest/services/SVI2020_Web_Map_for_Data_Share_WFL1/FeatureServer/0">Maine Social Vulnerability Index 2020</a> (Bowdoin College &amp; The Nature Conservancy in Maine)<br>
     County boundaries: <a href="https://services1.arcgis.com/RbMX0mRVOFNTdLzd/arcgis/rest/services/Maine_County_Boundary_Lines/FeatureServer">Maine County Boundary Lines</a>; U.S. Census via us-atlas
   </div>
+  <button id="about">About these storms</button>
+  <button id="pause"></button>
   <svg id="time"></svg>
   <div id="err">County boundaries could not load.</div>
 </div>
 <div id="tip"></div>
+<div id="loader"><canvas id="snow"></canvas><div class="ttl">Maine Winter Storm Outages<span>Loading the map&hellip;</span></div></div>
+<div id="intro" role="dialog" aria-modal="true" aria-labelledby="introTitle">
+  <div class="card">
+    <button class="x" aria-label="Close">&times;</button> 
+    <h2 id="introTitle">What does Maine face during the winter?</h2>
+    <h3>The storms</h3>
+    <p><b>Nor&rsquo;easters</b> are the big ones. These low-pressure systems travel up the Atlantic coast and pull ocean moisture inland, bringing heavy snow and strong northeast winds. <b>Wet, heavy snow</b> clings to branches and wires, <b>freezing rain</b> coats everything in ice, and some storms are mostly <b>wind and rain</b>.</p>
+    <p>Forests cover about 89% of Maine&rsquo;s land, more than any other state, so most power lines run through trees. When snow, ice or wind bring limbs down, they take the lines with them. Rural lines run for miles, and crews usually restore the repairs that bring back the most customers first. Small towns and back roads tend to see longer waits.</p>
+    <h3>The dangers</h3>
+    <p>Most furnaces, including oil and propane, need electricity, or homes go cold. After a 1998 ice storm, Maine CDC found that a generator in a basement or garage could raise the risk of carbon monoxide poisoning up to 300-fold. Other risks concern medical equipment and refrigerated medicine, and phones and internet can go down with the power.</p>
+    <p>The risk is highest for older adults, people with disabilities or home medical equipment, households that can&rsquo;t afford a generator or a hotel, people without a car, and rural residents far from a warming center.</b></p>
+    <p><b>For this map: Outages are recorded at the county level. Every dot in a county shows that county&rsquo;s total for the storm.</p>
+    <button class="go">Explore the map</button>
+  </div>
+</div>
 <script src="https://cdn.jsdelivr.net/npm/d3@7.9.0/dist/d3.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/topojson-client@3.1.0/dist/topojson-client.min.js"></script>
 <script>
 const DATA =
 {"storms":[{"date":"2016-01-10","season":"2015\u201316","ch":816903,"c":{"23001":[10386,2912],"23003":[9033,2362],"23007":[1252,313],"23009":[463094,22804],"23011":[41899,8570],"23013":[43702,3763],"23015":[43402,6096],"23017":[1866,541],"23019":[71911,7088],"23021":[5363,1497],"23023":[30098,3650],"23027":[53438,3263],"23029":[41460,3217]}},{"date":"2016-02-25","season":"2015\u201316","ch":52488,"c":{"23001":[10332,1475],"23003":[8448,3461],"23005":[20689,3227],"23009":[370,396],"23011":[10703,2562],"23019":[64,256],"23031":[1882,1545]}},{"date":"2016-12-30","season":"2016\u201317","ch":1514596,"c":{"23001":[93390,6361],"23005":[385181,28105],"23007":[3002,336],"23009":[45285,6192],"23011":[318816,24072],"23013":[24455,4098],"23015":[57851,7594],"23017":[3634,638],"23019":[239153,21404],"23021":[79079,7884],"23023":[79947,6230],"23027":[87798,8330],"23029":[20004,2385],"23031":[77001,8018]}},{"date":"2017-03-02","season":"2016\u201317","ch":65976,"c":{"23001":[804,643],"23005":[6082,2035],"23007":[935,432],"23011":[2245,1062],"23013":[375,500],"23015":[972,836],"23017":[9293,1710],"23019":[3326,769],"23021":[6842,1619],"23023":[1196,435],"23031":[33906,6865]}},{"date":"2017-03-14","season":"2016\u201317","ch":924482,"c":{"23001":[6272,805],"23005":[4831,468],"23007":[4042,481],"23009":[71408,4248],"23011":[37680,4975],"23013":[4431,532],"23015":[1095,340],"23017":[22205,1692],"23019":[19381,2566],"23021":[13138,1090],"23027":[18142,1442],"23029":[60346,5045],"23031":[661510,25422]}},{"date":"2018-03-07","season":"2017\u201318","ch":633505,"c":{"23005":[26730,3341],"23009":[39276,2559],"23011":[1397,624],"23013":[8557,3196],"23015":[169156,6429],"23023":[35061,2577],"23025":[799,355],"23029":[4622,786],"23031":[347908,19958]}},{"date":"2019-02-25","season":"2018\u201319","ch":132136,"c":{"23001":[5295,1899],"23003":[2102,450],"23005":[22546,2425],"23007":[7182,1816],"23009":[11216,3368],"23011":[7757,1497],"23013":[3801,3294],"23015":[14364,2471],"23017":[21897,2893],"23019":[6215,1204],"23021":[3970,2905],"23023":[120,244],"23025":[911,571],"23027":[4102,1759],"23031":[20659,3059]}},{"date":"2020-02-07","season":"2019\u201320","ch":245424,"c":{"23001":[389,223],"23003":[719,262],"23005":[91460,13350],"23009":[12355,3304],"23013":[15778,2084],"23015":[43030,2945],"23017":[4052,1986],"23019":[1829,283],"23021":[1494,854],"23023":[54262,5250],"23027":[6377,753],"23029":[5229,1559],"23031":[8450,2525]}},{"date":"2020-03-24","season":"2019\u201320","ch":126062,"c":{"23005":[20407,7713],"23009":[1796,422],"23011":[2232,1111],"23013":[160,229],"23015":[50004,5364],"23017":[1632,520],"23023":[28059,2887],"23027":[2183,490],"23029":[228,457],"23031":[19360,5278]}},{"date":"2020-12-05","season":"2020\u201321","ch":654165,"c":{"23003":[57372,5488],"23005":[436,586],"23009":[56810,3214],"23013":[97900,4771],"23015":[162946,7541],"23023":[138727,6420],"23025":[205,205],"23027":[138507,6447],"23029":[1102,339],"23031":[159,637]}},{"date":"2020-12-25","season":"2020\u201321","ch":111483,"c":{"23001":[3283,984],"23003":[812,406],"23005":[10103,4291],"23007":[718,454],"23009":[10655,3463],"23011":[20571,5364],"23013":[2019,503],"23015":[11490,1100],"23017":[1632,1024],"23019":[24042,5499],"23021":[5590,1405],"23023":[2981,718],"23025":[2010,1376],"23027":[6738,1054],"23031":[8838,1528]}},{"date":"2021-03-01","season":"2020\u201321","ch":830698,"c":{"23001":[20058,2001],"23003":[2072,1013],"23005":[30064,3486],"23007":[73300,4495],"23009":[38747,3160],"23011":[29057,5454],"23013":[23761,4580],"23015":[64118,2510],"23017":[211017,11773],"23019":[18303,3049],"23021":[66544,5040],"23023":[16684,3025],"23025":[50248,4420],"23027":[19842,2847],"23029":[3475,1092],"23031":[163410,13496]}},{"date":"2021-03-29","season":"2020\u201321","ch":409146,"c":{"23001":[4865,1151],"23003":[8116,2586],"23005":[20505,5253],"23007":[48633,6907],"23009":[5165,1396],"23011":[16713,2514],"23013":[11341,3252],"23015":[19025,4150],"23017":[64640,7009],"23019":[30163,4710],"23021":[39262,4968],"23023":[7254,1297],"23025":[40494,4398],"23027":[9426,3180],"23029":[1222,783],"23031":[82323,10703]}},{"date":"2022-01-29","season":"2021\u201322","ch":47340,"c":{"23005":[3351,3566],"23007":[578,337],"23009":[16936,1091],"23011":[2582,2360],"23015":[6750,738],"23017":[3891,1152],"23019":[444,332],"23023":[594,1188],"23025":[6804,1036],"23027":[1716,539],"23029":[3695,2990]}},{"date":"2022-02-18","season":"2021\u201322","ch":78862,"c":{"23001":[355,238],"23003":[341,1364],"23005":[2792,3986],"23007":[1532,653],"23009":[24118,3503],"23013":[2965,1569],"23015":[1292,345],"23017":[6784,1712],"23019":[26541,8730],"23021":[887,534],"23023":[3874,1559],"23025":[1844,833],"23027":[736,286],"23029":[1237,285],"23031":[3563,590]}},{"date":"2022-12-16","season":"2022\u201323","ch":2796103,"c":{"23001":[351320,14617],"23003":[552,747],"23005":[444114,10844],"23007":[116938,4857],"23011":[219139,7705],"23015":[1661,600],"23017":[1105280,25494],"23019":[184870,11142],"23021":[22070,1151],"23023":[6438,1683],"23025":[94340,3770],"23027":[10569,746],"23029":[1486,849],"23031":[237325,12136]}},{"date":"2022-12-23","season":"2022\u201323","ch":832425,"c":{"23005":[2070,4489],"23007":[111449,4798],"23011":[284727,15504],"23013":[282256,10269],"23017":[1373,1339],"23019":[1406,912],"23021":[298,239],"23025":[145670,9608],"23029":[597,329],"23031":[2578,5151]}},{"date":"2023-01-23","season":"2022\u201323","ch":1196787,"c":{"23001":[24036,4563],"23005":[37396,4434],"23009":[473,251],"23011":[4815,2627],"23013":[470,940],"23015":[4428,900],"23017":[1023,585],"23019":[5690,1928],"23021":[1132,1351],"23029":[1008,293],"23031":[1116315,39304]}},{"date":"2023-03-14","season":"2022\u201323","ch":1392274,"c":{"23001":[56610,6661],"23003":[3074,415],"23005":[223931,24467],"23007":[7922,2721],"23009":[27179,1841],"23011":[49776,4433],"23013":[290622,16556],"23015":[253950,11081],"23017":[10605,723],"23019":[7438,1736],"23021":[870,220],"23023":[119549,4918],"23025":[2084,513],"23027":[36950,2644],"23029":[21024,3727],"23031":[280690,17472]}}],"names":{"23001":"Androscoggin","23003":"Aroostook","23005":"Cumberland","23007":"Franklin","23009":"Hancock","23011":"Kennebec","23013":"Knox","23015":"Lincoln","23017":"Oxford","23019":"Penobscot","23021":"Piscataquis","23023":"Sagadahoc","23025":"Somerset","23027":"Waldo","23029":"Washington","23031":"York"}};
-// Maine county lines (user's layer) + county polygons (us-atlas) for the fill
 const SVC = "https://services1.arcgis.com/RbMX0mRVOFNTdLzd/arcgis/rest/services/Maine_County_Boundary_Lines/FeatureServer/0/query?where=1%3D1&outFields=*&outSR=4326&f=geojson";
 const ATLAS = "https://cdn.jsdelivr.net/npm/us-atlas@3/counties-10m.json";
+const STATES = "https://cdn.jsdelivr.net/npm/us-atlas@3/states-10m.json";
+const WORLD = "https://cdn.jsdelivr.net/npm/world-atlas@2/countries-50m.json";
+const LABELS = {
+  "2017-03-14": "Winter Storm Stella",
+  "2018-03-07": "Winter Storm Quinn",
+  "2022-12-16": "Heavy wet-snow storm",
+  "2022-12-23": "Winter Storm Elliott",
+  "2023-03-14": "Nor’easter"
+};
+const NB_LABELS = [
+  {t:"NEW HAMPSHIRE", ll:[-71.75, 43.75]},
+  {t:"QUÉBEC", ll:[-71.9, 46.45]},
+  {t:"NEW BRUNSWICK", ll:[-66.55, 46.85]},
+  {t:"Gulf of Maine", ll:[-68.6, 43.35], sea:true}
+];
+function ordinal(n){ const s=["th","st","nd","rd"], v=n%100; return n+(s[(v-20)%10]||s[v]||s[0]); }
+function dayEquiv(ch){ return fmt(Math.round(ch/24/100)*100 || Math.round(ch/24)); }
 const fmt = d3.format(","), short = d3.format(".2~s");
 const seasons = [...new Set(DATA.storms.map(s=>s.season))];
 const vals = DATA.storms.flatMap(s=>Object.values(s.c).map(v=>v[0])).filter(v=>v>0);
 const DOM = [Math.max(1,d3.min(vals)), d3.max(vals)];
-// Outage dots: blue → yellow → red as customer-hours rise
+
 const sc = d3.scaleSequentialLog(DOM, d3.interpolateRgbBasis(["#2a4876","#5b8fc7","#f2c84b","#ef8a3c","#c8102e"])).clamp(true);
 const byName = {}; for (const [f,n] of Object.entries(DATA.names)) byName[norm(n)] = f;
 function norm(s){return String(s).toUpperCase().replace(/\s+COUNTY$/,"").trim();}
 function fipsOf(props){for (const v of Object.values(props||{})) {const f=byName[norm(v)]; if(f) return f;} return null;}
 
-let proj, polys, grid, dotSel, towns = null;
-let season = seasons[seasons.length-1], idx = 0, timer = null;
-const svg = d3.select("#map"), g = svg.append("g"), tip = d3.select("#tip");
-const gDots = g.append("g"), gBlobs = g.append("g");
+let proj, polys, grid, dotSel, towns = null, neighbors = [];
+let season = seasons[seasons.length-1], idx = 0, timer = null, paused = true;
+const svg = d3.select("#map"), tip = d3.select("#tip");
+
+const defs = svg.append("defs");
+const fadeGrad = defs.append("linearGradient").attr("id","fadeGrad").attr("gradientUnits","userSpaceOnUse").attr("x1",0).attr("x2",0);
+const fadeMask = defs.append("mask").attr("id","fade").attr("maskUnits","userSpaceOnUse");
+const fadeRect = fadeMask.append("rect").attr("fill","url(#fadeGrad)");
+const gNbWrap = svg.append("g").attr("mask","url(#fade)"), gNb = gNbWrap.append("g");
+const g = svg.append("g");
+const gMaine = g.append("g"), gDots = g.append("g"), gBlobs = g.append("g");
 
 const yb = d3.select("#years").selectAll("button").data(seasons).join("button")
   .text(d=>d).on("click",(e,d)=>{season=d; idx=0; play();});
+const pauseBtn = d3.select("#pause").on("click",togglePause);
+pauseBtn.text("\u25b6 Play");
+function togglePause(){ paused = !paused; play(); }
+window.addEventListener("keydown", e=>{
+  if (e.code==="Escape" && introOpen()) { closeIntro(); return; }
+  if (e.code==="Space" && !introOpen() && !e.target.closest("button,summary,a")) { e.preventDefault(); togglePause(); }
+});
+
+// falling snow until the map is ready
+const loader = document.getElementById("loader"), snowCv = document.getElementById("snow"), sctx = snowCv.getContext("2d");
+const calm = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+let flakes = [], snowing = true, t0 = performance.now();
+function sizeSnow(){ snowCv.width = innerWidth*devicePixelRatio; snowCv.height = innerHeight*devicePixelRatio; sctx.setTransform(devicePixelRatio,0,0,devicePixelRatio,0,0); }
+sizeSnow(); addEventListener("resize", sizeSnow);
+for (let i=0;i<(calm?80:260);i++) flakes.push({x:Math.random()*innerWidth, y:Math.random()*innerHeight, r:.8+Math.random()*2.6, v:.4+Math.random()*1.3, ph:Math.random()*6.28});
+function snowFrame(t){
+  if (!snowing) return;
+  sctx.clearRect(0,0,innerWidth,innerHeight); sctx.fillStyle = "rgba(255,255,255,.9)";
+  for (const f of flakes) {
+    if (!calm) { f.y += f.v*(1+f.r*.35); f.x += Math.sin(t/900 + f.ph)*.45 + .25; }
+    if (f.y > innerHeight+4) { f.y = -4; f.x = Math.random()*innerWidth; }
+    if (f.x > innerWidth+4) f.x = -4;
+    sctx.beginPath(); sctx.arc(f.x, f.y, f.r, 0, 6.283); sctx.fill();
+  }
+  requestAnimationFrame(snowFrame);
+}
+requestAnimationFrame(snowFrame);
+function finishLoading(){
+  const wait = Math.max(0, 2400 - (performance.now()-t0));
+  setTimeout(()=>{ loader.classList.add("done"); setTimeout(()=>{ snowing=false; loader.remove(); }, 950); openIntro(); }, wait);
+}
+
+
+const intro = document.getElementById("intro");
+let introSeen = false;
+function introOpen(){ return intro.classList.contains("show"); }
+function openIntro(){ intro.classList.add("show"); clearInterval(timer); intro.querySelector(".x").focus(); }
+function closeIntro(){ intro.classList.remove("show"); if (!introSeen) { introSeen = true; paused = false; } play(); }
+intro.querySelector(".x").addEventListener("click", closeIntro);
+intro.querySelector(".go").addEventListener("click", closeIntro);
+intro.addEventListener("click", e=>{ if (e.target === intro) closeIntro(); });
+document.getElementById("about").addEventListener("click", openIntro);
 
 Promise.all([
   d3.json(SVC).catch(()=>null),
-  d3.json(ATLAS).catch(()=>null)
-]).then(([gj, us])=>{
+  d3.json(ATLAS).catch(()=>null),
+  d3.json(STATES).catch(()=>null),
+  d3.json(WORLD).catch(()=>null)
+]).then(([gj, us, st, world])=>{
+  if (st) neighbors.push(...topojson.feature(st, st.objects.states).features.filter(f=>["33","50","25","36","09","44"].includes(f.id)));
+  if (world) neighbors.push(...topojson.feature(world, world.objects.countries).features.filter(f=>f.id==="124"));
   const feats = gj && gj.features ? gj.features : [];
   if (feats.length && /Polygon/.test(feats[0].geometry && feats[0].geometry.type)) {
     polys = feats.map(f=>({...f, id: fipsOf(f.properties)})).filter(f=>f.id);
     if (polys.length < 10) polys = null;
   }
   if (!polys && us) polys = topojson.feature(us, us.objects.counties).features.filter(f=>f.id.startsWith("23"));
-  if (!polys) { d3.select("#err").style("display","flex"); return; }
+  if (!polys) { d3.select("#err").style("display","flex"); finishLoading(); return; }
   polys.forEach(p=>p.bb = d3.geoBounds(p));
   proj = d3.geoTransverseMercator().rotate([69.2,0]);
   function size(){const r=svg.node().getBoundingClientRect();
-    proj.fitExtent([[r.width*.18,150],[r.width-30,r.height-80]],{type:"FeatureCollection",features:polys});
-    buildGrid(); show(true); drawBlobs(); timeline();}
+    proj.fitExtent([[r.width*.18,200],[r.width-110,r.height-90]],{type:"FeatureCollection",features:polys});
+    drawBase(r); buildGrid(); show(true); drawBlobs(); timeline();}
   size(); window.addEventListener("resize",size);
-  legend(); play();
+  legend(); show(true); finishLoading();
   loadTowns().then(drawBlobs);
 });
 
+
+function drawBase(r){
+  const top0 = 160, top1 = 195, bot1 = r.height-105, bot0 = r.height-72;
+  fadeGrad.attr("y1",0).attr("y2",r.height).selectAll("stop")
+    .data([[0,0],[top0,0],[top1,1],[bot1,1],[bot0,0],[r.height,0]]).join("stop")
+    .attr("offset",d=>d[0]/r.height).attr("stop-color","#fff").attr("stop-opacity",d=>d[1]);
+  fadeRect.attr("width",r.width).attr("height",r.height);
+  fadeMask.attr("x",0).attr("y",0).attr("width",r.width).attr("height",r.height);
+  
+  const pn = d3.geoTransverseMercator().rotate(proj.rotate()).scale(proj.scale()).translate(proj.translate())
+    .clipExtent([[-r.width,-r.height],[2*r.width,2*r.height]]);
+  const pathN = d3.geoPath(pn);
+  gNb.selectAll(".nb-land").data(neighbors).join("path").attr("class","nb-land").attr("d",pathN);
+  gNb.selectAll("text").data(NB_LABELS).join("text")
+    .attr("class",d=>d.sea?"sea-label":"nb-label")
+    .attr("x",d=>pn(d.ll)[0]).attr("y",d=>pn(d.ll)[1]).text(d=>d.t);
+  gMaine.selectAll(".me-land").data(polys).join("path").attr("class","me-land").attr("d",d3.geoPath(proj));
+}
+
 function inBB(ll,b){return ll[0]>=b[0][0] && ll[0]<=b[1][0] && ll[1]>=b[0][1] && ll[1]<=b[1][1];}
-// A regular grid of circles over Maine; each circle takes the outage value of the county it sits in
+
 function buildGrid(){
   const b = d3.geoPath(proj).bounds({type:"FeatureCollection",features:polys});
   const s = Math.max(6, Math.min(13, (b[1][1]-b[0][1])/75));
@@ -110,12 +244,12 @@ function buildGrid(){
     .attr("cx",d=>d.x).attr("cy",d=>d.y)
     .on("mousemove",(e,d)=>{const st=cur(), v=st&&st.c[d.fips];
       tip.style("display","block").style("left",e.clientX+14+"px").style("top",e.clientY+14+"px")
-         .html(`<b>${DATA.names[d.fips]||""} County</b><br>${v?fmt(v[0])+" customer-hours out":"No matched outage"}${d.svi!=null?`<br>Town SVI: ${d3.format(".2f")(d.svi)}`:""}`);})
+         .html(`<b>${DATA.names[d.fips]||""} County</b><br>${v?`${fmt(v[0])} customer-hours out<br>≈ ${dayEquiv(v[0])} customers in the dark for a full day`:"No outage recorded for this storm"}${d.svi!=null?`<br>Town SVI: ${d3.format(".2f")(d.svi)}`:""}`);})
     .on("mouseleave",()=>tip.style("display","none"));
 }
 function dotR(v){ const s = grid.s; return v>0 ? s*(.2 + .28*(Math.log(v/DOM[0])/Math.log(DOM[1]/DOM[0]))) : s*.13; }
 
-// SVI as rounded, contoured shapes: town SVI sampled on the grid, softened, then contoured every 0.05 above 0.5
+
 async function loadTowns(){
   try {
     towns = (await fetchAll(SVI, "where=1%3D1&outFields=NAME,MESVI2020,RPL_THEMES&outSR=4326&f=geojson"))
@@ -138,7 +272,7 @@ function drawBlobs(){
     .attr("fill",(d,i)=>i===0?"rgba(21,47,87,.05)":"none");
 }
 
-// ---- Data helpers ----
+
 const SVI = "https://services.arcgis.com/F7DSX1DSNSiWmOqh/arcgis/rest/services/SVI2020_Web_Map_for_Data_Share_WFL1/FeatureServer/0";
 async function fetchAll(base, params){
   let off = 0, out = [];
@@ -157,22 +291,26 @@ function sviValue(p){
   if (v == null || isNaN(v) || v < 0) return null;
   return v > 1 ? v / 100 : +v;
 }
-// Zoom & pan
-const zoom = d3.zoom().scaleExtent([1, 40]).on("zoom", e=>g.attr("transform", e.transform));
+
+const zoom = d3.zoom().scaleExtent([1, 40]).on("zoom", e=>{ g.attr("transform", e.transform); gNb.attr("transform", e.transform); });
 svg.call(zoom).on("dblclick.zoom", null);
 
 function list(){return DATA.storms.filter(s=>s.season===season);}
 function cur(){return list()[idx];}
 function play(){
   clearInterval(timer); show();
-  if (list().length>1) timer = setInterval(()=>{idx=(idx+1)%list().length; show();}, 2400);
+  pauseBtn.text(paused ? "▶ Play" : "❚❚ Pause").attr("aria-label", paused ? "Play" : "Pause");
+  if (!paused && list().length>1) timer = setInterval(()=>{idx=(idx+1)%list().length; show();}, 2400);
 }
 function show(instant){
   const s = cur(); if(!s||!dotSel) return;
   yb.classed("on",d=>d===season);
   const dt = new Date(s.date+"T12:00");
   d3.select("#date").text(dt.toLocaleDateString("en-US",{month:"long",day:"numeric",year:"numeric"}));
-  d3.select("#sub").text(`Storm ${idx+1} of ${list().length} · ${fmt(s.ch)} customer-hours out statewide`);
+  const n = list().length, label = LABELS[s.date] || "Winter storm";
+  const which = n === 1 ? `the only outage-causing storm recorded in winter ${season}`
+                        : `the ${ordinal(idx+1)} of ${n} outage-causing storms recorded in winter ${season}`;
+  d3.select("#sub").html(`<b>${label}</b>, ${which}<br>${fmt(s.ch)} customer-hours without power statewide ≈ ${dayEquiv(s.ch)} customers in the dark for a full day`);
   const val = d => { const v = s.c[d.fips]; return v ? v[0] : 0; };
   (instant ? dotSel : dotSel.transition().duration(600))
     .attr("r", d=>dotR(val(d)))
@@ -193,7 +331,9 @@ function timeline(){
 }
 function legend(){
   const el=d3.select("#legend");
-  el.append("div").style("margin-bottom","4px").text("Customer-hours out");
+  el.append("div").text("Customer-hours out");
+  el.append("div").style("margin-bottom","4px").style("font-size","10px").style("color","#5b6f8f")
+    .text("customers without power × hours they were out");
   const samples=[DOM[0]*3, Math.sqrt(DOM[0]*DOM[1]), DOM[1]/8, DOM[1]], s0=11;
   const ls=el.append("svg").attr("width",200).attr("height",34);
   const x=d=>16+d*40;
@@ -202,11 +342,15 @@ function legend(){
   samples.forEach((v,i)=>{ const t=Math.log(v/DOM[0])/Math.log(DOM[1]/DOM[0]);
     ls.append("circle").attr("cx",x(i+1)).attr("cy",12).attr("r",s0*(.2+.28*t)*1.6).attr("fill",sc(v));
     ls.append("text").attr("x",x(i+1)).attr("y",31).attr("text-anchor","middle").attr("font-size",10).attr("fill","#2a4876").text(short(v)); });
-  const b=el.append("div").attr("id","svikey");
-  b.append("span").text("Socially vulnerable areas (SVI ≥ 0.5, a ring every 0.05)");
-  const bs=b.append("svg").attr("width",34).attr("height",26);
+  const det=el.append("details").attr("id","svidef");
+  const sum=det.append("summary");
+  sum.append("span").text("Socially vulnerable areas");
+  sum.append("span").attr("class","caret").text("\u25bc");
+  const bs=sum.append("svg").attr("width",34).attr("height",26);
   [12,9,6,3].forEach((r,i)=>bs.append("ellipse").attr("cx",17).attr("cy",13).attr("rx",r*1.3).attr("ry",r)
     .attr("fill",i?"none":"rgba(21,47,87,.05)").attr("stroke",ringColor(i*2)).attr("stroke-width",i?.8:2));
+  det.append("p").html("Rings outline Maine towns with higher social vulnerability, from the <b>Maine Social Vulnerability Index (2020)</b>, a Maine version of the CDC&rsquo;s index kept by Bowdoin College and The Nature Conservancy in Maine. It scores each town on Census measures such as poverty, disability, older adults, households without a car, limited English, housing costs and lack of health insurance.");
+  det.append("p").html("Higher means a town may have a harder time preparing for, getting through and recovering from a disaster like a long outage. The outer ring starts at 0.5, with a new ring every 0.05.");
 }
 </script>
 </body>
